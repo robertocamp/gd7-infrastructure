@@ -1,0 +1,184 @@
+Terraform will perform the following actions:
+
+  # data.tls_certificate.this[0] will be read during apply
+  # (config refers to values not yet known)
+ <= data "tls_certificate" "this" {
+      + certificates = (known after apply)
+      + id           = (known after apply)
+      + url          = (known after apply)
+    }
+
+  # aws_eks_cluster.this will be created
+  + resource "aws_eks_cluster" "this" {
+      + arn                   = (known after apply)
+      + certificate_authority = (known after apply)
+      + cluster_id            = (known after apply)
+      + created_at            = (known after apply)
+      + endpoint              = (known after apply)
+      + id                    = (known after apply)
+      + identity              = (known after apply)
+      + name                  = "dev-demo"
+      + platform_version      = (known after apply)
+      + role_arn              = (known after apply)
+      + status                = (known after apply)
+      + tags_all              = (known after apply)
+      + version               = "1.26"
+
+      + vpc_config {
+          + cluster_security_group_id = (known after apply)
+          + endpoint_private_access   = false
+          + endpoint_public_access    = true
+          + public_access_cidrs       = (known after apply)
+          + subnet_ids                = [
+              + "subnet-1234",
+              + "subnet-5678",
+            ]
+          + vpc_id                    = (known after apply)
+        }
+    }
+
+  # aws_eks_node_group.this["general"] will be created
+  + resource "aws_eks_node_group" "this" {
+      + ami_type               = (known after apply)
+      + arn                    = (known after apply)
+      + capacity_type          = "ON_DEMAND"
+      + cluster_name           = "dev-demo"
+      + disk_size              = (known after apply)
+      + id                     = (known after apply)
+      + instance_types         = [
+          + "t3a.xlarge",
+        ]
+      + labels                 = {
+          + "role" = "general"
+        }
+      + node_group_name        = "general"
+      + node_group_name_prefix = (known after apply)
+      + node_role_arn          = (known after apply)
+      + release_version        = (known after apply)
+      + resources              = (known after apply)
+      + status                 = (known after apply)
+      + subnet_ids             = [
+          + "subnet-1234",
+          + "subnet-5678",
+        ]
+      + tags_all               = (known after apply)
+      + version                = (known after apply)
+
+      + scaling_config {
+          + desired_size = 1
+          + max_size     = 10
+          + min_size     = 0
+        }
+
+      + update_config {
+          + max_unavailable = 1
+        }
+    }
+
+  # aws_iam_openid_connect_provider.this[0] will be created
+  + resource "aws_iam_openid_connect_provider" "this" {
+      + arn             = (known after apply)
+      + client_id_list  = [
+          + "sts.amazonaws.com",
+        ]
+      + id              = (known after apply)
+      + tags_all        = (known after apply)
+      + thumbprint_list = (known after apply)
+      + url             = (known after apply)
+    }
+
+  # aws_iam_role.eks will be created
+  + resource "aws_iam_role" "eks" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "eks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "dev-demo-eks-cluster"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + role_last_used        = (known after apply)
+      + tags_all              = (known after apply)
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role.nodes will be created
+  + resource "aws_iam_role" "nodes" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ec2.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "dev-demo-eks-nodes"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + role_last_used        = (known after apply)
+      + tags_all              = (known after apply)
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role_policy_attachment.eks will be created
+  + resource "aws_iam_role_policy_attachment" "eks" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+      + role       = "dev-demo-eks-cluster"
+    }
+
+  # aws_iam_role_policy_attachment.nodes["1"] will be created
+  + resource "aws_iam_role_policy_attachment" "nodes" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+      + role       = "dev-demo-eks-nodes"
+    }
+
+  # aws_iam_role_policy_attachment.nodes["2"] will be created
+  + resource "aws_iam_role_policy_attachment" "nodes" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+      + role       = "dev-demo-eks-nodes"
+    }
+
+  # aws_iam_role_policy_attachment.nodes["3"] will be created
+  + resource "aws_iam_role_policy_attachment" "nodes" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      + role       = "dev-demo-eks-nodes"
+    }
+
+  # aws_iam_role_policy_attachment.nodes["4"] will be created
+  + resource "aws_iam_role_policy_attachment" "nodes" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      + role       = "dev-demo-eks-nodes"
+    }
+
