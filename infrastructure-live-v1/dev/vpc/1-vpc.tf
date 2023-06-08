@@ -6,5 +6,6 @@ resource "aws_vpc" "main" {
 
   tags = {
     Name = "dev-main"
+    WorkSession = "revision-1"
   }
 }

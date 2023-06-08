@@ -7,6 +7,7 @@ resource "aws_subnet" "private_us_east_2a" {
     "Name"                            = "dev-private-us-east-2a"
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/cluster/dev-demo"  = "owned"
+    "WorkSession" = "revision-1"
   }
 }
 

@@ -12,6 +12,7 @@ resource "aws_nat_gateway" "nat" {
 
   tags = {
     Name = "dev-nat"
+    WorkSession = "revision-1"
   }
 
   depends_on = [aws_internet_gateway.igw]
