@@ -63,6 +63,10 @@ export AWS_REGION="us-east-2"
 - `t plan`
 
 ### infrastructure-live-v2
+####  why use "this" ???
+- provider and backend will be configured in the "infrastructure-live" folder
+- if there is no more descriptive name available or if the resource module creates only 1 resource of this type, call the resource "this"
+
 - this will use a modules design
 - module directory: **infrastructure-modules**
 - topology:
@@ -84,13 +88,14 @@ export AWS_REGION="us-east-2"
         ├── 6-outputs.tf
         └── 7-variables.tf
 ```
-
+- `cd infrastructure-live-v2/dev/vpc`
+- 
 ### infrastructure-live-v3
 - use terragrunt
 - `cd infrastructure-live-v3/dev/vpc`
 - `terragrunt init`
 - terragrunt lets you tear down multiple environments from the root module:
-- `terragrunt run-all destroy`
+  + `terragrunt run-all destroy`
 - topology:
 ```
 ├── dev
@@ -106,16 +111,50 @@ export AWS_REGION="us-east-2"
   * `terragrunt apply`
   * `terragrunt run-all destroy`
 
+#### terragrunt backend
+- terragrunt generates backend and profile configurations in its own directory
+- 
 ### infrastructure-live-v4
+#### subnet design
+- 10.0.0.0/16 --> /24 subnets
+####  kubernetes nodes design
+- `aws ec2 describe-instance-types --query 'InstanceTypes[].InstanceType'`
+- the kuernetes nodes will need multiple IAM policies attached to an IAM role
+- the initial build will use **managed instances groups**
+#### IRSA
+- most of the time you will want to use irsa in conjunction with an OpenID Connect provider to grant access to the AWS API
+- this design creates a boolean flag called `enable_irsa` that we can use to create this provider on-demand
+- *once we have retrieved the EKS TLS certificate, the OIDC provider can be created*
+- `aws sts get-caller-identity`
+- aws iam list-open-id-connect-providers
+
+#### tree
+├── eks
+│   └── terragrunt.hcl
+├── env.hcl
+├── kubernetes-addons
+│   └── terragrunt.hcl
+└── vpc
+    └── terragrunt.hcl
+
+#### deployment commands
 - `cd gd7-infrastructure/infrastructure-live-v4/dev`
 - `terragrunt run-all init`
 - `terragrunt run-all plan`
 - `terragrunt run-all apply`
 
-### setting up kubectl
-- Amazon EKS uses the aws eks get-token command (available in version 1.16.156 or later of the AWS CLI) or the *AWS IAM Authenticator for Kubernetes* with kubectl for cluster authentication. 
+
+#### setting up kubectl: AWS CLI
+- https://awscli.amazonaws.com/v2/documentation/api/latest/reference/eks/update-kubeconfig.html
+- This command constructs a configuration with prepopulated server and certificate authority data values for a specified cluster
+- You can specify an IAM role ARN with the –role-arn option to use for authentication when you issue kubectl commands
+- Otherwise, the IAM entity in your default AWS CLI or SDK credential chain is used
+- You can view your default AWS CLI or SDK identity by running the aws sts get-caller-identity command
+- Amazon EKS uses the aws eks get-token command (available in version 1.16.156 or later of the AWS CLI) or the *AWS IAM Authenticator for Kubernetes* with kubectl for cluster authentication
+- **get cluster ARN from console:** arn:aws:eks:us-east-2:240195868935:cluster/live-infrastructure-v4-brahmabar
 - If you have installed the AWS CLI on your system, then by default the AWS IAM Authenticator for Kubernetes uses the same credentials that are returned with the following command: `aws sts get-caller-identity`
-- `aws eks update-kubeconfig --name dev-demo --region us-east-2`
+- `aws eks update-kubeconfig --name live-infrastructure-v4-brahmabar --region us-east-2 --dry-run`
+- if you are satisfied with the output of the dry run, run the command without the dry run, to install this context.
 - output: Added new context arn:aws:eks:us-east-2:<ACCOUNT#>:cluster/dev-demo to /Users/<USER>/.kube/config
 #### kubernetes addons
 - **cluster autoscaler** needs access to the AWS API to discover autoscaling groups and to adjust the desired size setting on them
@@ -126,19 +165,52 @@ export AWS_REGION="us-east-2"
 - in the Helm chart for the cluster autoscaler, the *namespace* must match the namespace for the IAM role
 - in the Helm chart for the cluster autoscaler, the *service account* must match the service account  for the IAM role
 - helm chart for cluster autoscaler will need the openID connecto provider ARN from the EKS cluster
-- **initial cluster checkout**
+- terragrunt will generate the Helm provider
+- we CANNOT pass variables from the EKS provider to the `terragrunt.hcl` file for Kubernetes Addons
+- to initialize the Helm provider, you need to generate a temporary token
+#### deployment
+```
+/Users/robert/Documents/CODE/gd7-infrastructure/infrastructure-live-v4/dev
+❯ tree
+.
+├── eks
+│   └── terragrunt.hcl
+├── env.hcl
+├── kubernetes-addons
+│   └── terragrunt.hcl
+└── vpc
+    └── terragrunt.hcl
+```
+- `terragrunt run-all plan`
 - `terragrunt run-all apply`
-- `helm list -A`
-- `kubectl get pods -n kube-system`
-- `k logs autoscaler-aws-cluster-autoscaler-69847d7574-lhn5l -n kube-system` 
 
+#### EKS cluster checkout
+- **initial cluster checkout**
+- validate that helm was installed correctly: `helm list -A`
+- `kubectl get pods -n kube-system`
+- example of the initial pods that should be running:
+```
+NAME                                                 READY   STATUS    RESTARTS   AGE
+autoscaler-aws-cluster-autoscaler-7457696899-2928w   1/1     Running   0          5m55s
+aws-node-d7d4r                                       1/1     Running   0          5h17m
+coredns-6dff7847bf-cwgmn                             1/1     Running   0          5h20m
+coredns-6dff7847bf-wkb8v                             1/1     Running   0          5h20m
+kube-proxy-d84tq                                     1/1     Running   0          5h17m
+```
+- `k logs autoscaler-aws-cluster-autoscaler-7457696899-2928w -n kube-system` 
+- `k nodes -o wide`
 #### authenticating helm provider
 - we *cannot* pass variables from the eks modules into ``infrastructure-live-v4/dev/kubernetes-addons
 - the cluster-autoscaler helm chart is a generated by the module and can only take in variables provided by the module itself
 #### depoly a test app
+- **Verify the available resources on your EKS worker nodes**
+  + `kubectl describe node <node_name>`
+- Review the resource requests and limits specified in your nginx deployment
+  + *If the requested memory exceeds the available resources on your nodes, the pods won't be scheduled*
+- **modify the test app deployment yaml**  to more appropriately match the resources available in your cluster
 - `watch -t kubectl get pods -n default`
 - simple nginx *deployment* with (4) replicas
-- k apply -f demo/deployment.yml
+- k apply -f deployment.yml
 ## links
 - https://github.com/antonputra/tutorials
 - assume role with web identity: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html#cli-configure-role-oidc
@@ -148,6 +220,9 @@ export AWS_REGION="us-east-2"
 - https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
 - https://github.com/kubernetes/autoscaler/tree/57e54f6b93b170ec3d0674300441738274627aa4/charts/cluster-autoscaler-chart#aws---using-auto-discovery-of-tagged-instance-groups
 
+#### deployment
+- `terragrunt run-all plan`  
+- `terragrunt run-all apply`
 
 ## work sessions: clean this up after
 - FRI: https://www.youtube.com/watch?v=yduHaOj3XMg 10:00
@@ -187,3 +262,10 @@ nginx-697fc7c95b-wcvrv   1/1     Running   0          9m1s
 - delete deployment, teardown cluster
 - k delete deployment -n default
 - video:  45:00
+
+## links
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/eks/update-kubeconfig.html
+https://www.youtube.com/watch?v=yduHaOj3XMg&t=2859s
+https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/eks/update-kubeconfig.html
+https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/

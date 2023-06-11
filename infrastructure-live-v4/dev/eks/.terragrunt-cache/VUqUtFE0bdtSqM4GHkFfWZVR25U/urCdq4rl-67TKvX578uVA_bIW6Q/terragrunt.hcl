@@ -15,13 +15,13 @@ include "env" {
 inputs = {
   eks_version = "1.26"
   env         = include.env.locals.env
-  eks_name    = "demo"
+  eks_name    = "brahmabar"
   subnet_ids  = dependency.vpc.outputs.private_subnet_ids
 
   node_groups = {
     general = {
       capacity_type  = "ON_DEMAND"
-      instance_types = ["t3a.xlarge"]
+      instance_types = ["t3.small"]
       scaling_config = {
         desired_size = 1
         max_size     = 10
