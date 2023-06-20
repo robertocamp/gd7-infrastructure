@@ -272,14 +272,14 @@ openid_provider_arn = "arn:aws:iam::240195868935:oidc-provider/oidc.eks.us-east-
 - `helm list -A`
 - `k get pods -n kube-system`
 
-
+## Prometheus Operator
 ## links
 - https://awscli.amazonaws.com/v2/documentation/api/latest/reference/eks/update-kubeconfig.html
-- https://www.youtube.com/watch?v=yduHaOj3XMg&t=2859s
+- VPC: https://www.youtube.com/watch?v=yduHaOj3XMg&t=2859s
+- Thanos: Thanos (Multi Cluster Prometheus)
 - https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
 - https://awscli.amazonaws.com/v2/documentation/api/latest/reference/eks/update-kubeconfig.html
 - https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-- https://github.com/antonputra/tutorials
 - assume role with web identity: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html#cli-configure-role-oidc
 - TF AWS provider: https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 - AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-configure-quickstart-precedence
