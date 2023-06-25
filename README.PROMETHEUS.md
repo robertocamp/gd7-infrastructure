@@ -144,6 +144,38 @@ secret/additional-scrape-configs created
 - https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html
 
 
-## troubleshooting
-- k get pods -n monitoring
-- 
+## checkout and troubleshooting
+-  optional: hardcode namespace: `kubectl config set-context --current --namespace=monitoring`
+- `k get pods -n monitoring`
+- Verify API resource availability: `kubectl api-resources --api-group=monitoring.coreos.com`
+- Check Prometheus Operator installation: 
+  + Confirm that the Prometheus Operator is properly installed in your EKS cluster. T
+  + the Prometheus Operator requires a Custom Resource Definition (CRD) for Alertmanager to be created. 
+  + Check if the CRD exists using the following command: `kubectl get crd | grep alertmanager`
+  + Validate Prometheus Operator resources: 
+    + Verify that the Prometheus Operator resources, such as Prometheus and ServiceMonitor, are correctly configured. 
+    + These resources should reference the Alertmanager resource
+    + `kubectl get servicemonitor`
+- Check for namespace mismatch: 
+  + Make sure that the Prometheus Operator and the Alertmanager resources are deployed in the same namespace
+  + `kubectl get po -l app.kubernetes.io/name=prometheus-operator -o=jsonpath='{.items[0].metadata.namespace'`
+  + `kubectl get alertmanager -o=jsonpath='{.items[0].metadata.namespace}'`
+  + check logs: `kubectl logs <prometheus-operator-controller-pod-name> -n <prometheus-operator-namespace>`
+- verify ClusterRole and ClusterRoleBinding naming conventions are consistent
+  + `kubectl get clusterrole -n monitoring`     
+  + `kubectl delete clusterrolebinding prometheus -n monitoring`
+  + `kubectl rollout restart statefulset prometheus-main-0 -n monitoring`
+- To validate whether Prometheus has a **Persistent Volume Claim (PVC)** associated with it for storing its data in your AWS EKS cluster, you can follow these steps:
+  + `kubectl get statefulsets`
+  + `kubectl describe statefulset prometheus-main`
+  + `k get pvc`
+    + pvc name is prometheus-main-db-prometheus-main-0
+- verify that the Prometheus Operator has configured a **service**:
+  + `k get svc` 
+- you can use the service in port-forwarding command if you dont' wish to create an ingress at this time:
+  + k port-forward svc/prometheus-operated 9090 -n monitoring
+  + connect to Prometheus in the web browser
+```
+Forwarding from 127.0.0.1:9090 -> 9090
+Forwarding from [::1]:9090 -> 9090
+```
