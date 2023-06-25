@@ -14,7 +14,7 @@ RUN go mod download
 COPY *.go ./
 
 # RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app main.go
 ##
 ## Run the tests in the container
 ##
@@ -30,7 +30,7 @@ FROM build-stage AS run-test-stage
 FROM alpine:latest
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 
-WORKDIR /
+# WORKDIR /
 
 COPY --from=build-stage /app /app
 

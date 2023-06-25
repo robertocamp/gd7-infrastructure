@@ -3,9 +3,25 @@
   +  `git clone https://github.com/olliefr/docker-gs-ping`
 2. remove go.mod and go.sum from project root so that you can create your own (good practice)
 3. initialize the project as a go modules project:  `go mod init github.com/<PATH TO YOUR GITHUB PROJECT>`
-
+4. build code: https://github.com/antonputra/tutorials/tree/main/lessons/154/myapp
+5. local smoke test the app: `cd /Users/robert/Documents/CODE/gd7-infrastructure/app`
+  + `go mod tidy`
+  + `go run main.go`
+  + connect to local host: http://127.0.0.1:8080/api/devices
+6. build the image: `docker build --tag prometheus-demo-app  .`
+7. package the image for AWS: `docker tag prometheus-demo-app:latest 240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest`
+docker tag docker-gs-ping:multistage 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage
+8. upload to ECR
+  + `aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 240195868935.dkr.ecr.us-east-2.amazonaws.com`
+  + `docker push 240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest`
+9. get the image URI from the AWS Console (go to ECR):  240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest
+10. update the deployment YML with the image uri
+11. deploy:  `k apply -f deploy`
+### troubleshooting the installation
+- log message: 
+- `docker image inspect prometheus-demo-app:v0.1`
 ## Docker
-- Docker images can be inherited from other images. 
+- Dock`er images can be inherited from other images. 
 - Therefore, instead of creating our own base image from scratch, we can use the official Go image that already has all necessary tools and libraries to compile and run a Go application.
 - To make things easier when running the rest of our commands, let’s create a directory inside the image that we are building. - - - This also instructs Docker to use this directory as the default destination for all subsequent commands
 - Usually the very first thing you do once you’ve downloaded a project written in Go is to install the modules necessary to compile it. 
@@ -84,10 +100,10 @@ CMD ["/docker-gs-ping"]
   + Replace <account-id> with your AWS account ID, <region> with the desired AWS region, and <repository-name> with the name of the repository in ECR
     + `docker tag docker-gs-ping:multistage 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage`
 2. log into the ECR Repository vi CLI
-  + aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
+  + `aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com`
   + `aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 240195868935.dkr.ecr.us-east-2.amazonaws.com`
   + Login Succeeded
-3. push the image: docker push 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage
+3. push the image: `docker push 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage`
 
 ## Links
 https://docs.docker.com/language/golang/build-images/
