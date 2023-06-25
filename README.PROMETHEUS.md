@@ -173,9 +173,22 @@ secret/additional-scrape-configs created
 - verify that the Prometheus Operator has configured a **service**:
   + `k get svc` 
 - you can use the service in port-forwarding command if you dont' wish to create an ingress at this time:
-  + k port-forward svc/prometheus-operated 9090 -n monitoring
+  + `k port-forward svc/prometheus-operated 9090 -n monitoring`
   + connect to Prometheus in the web browser
 ```
 Forwarding from 127.0.0.1:9090 -> 9090
 Forwarding from [::1]:9090 -> 9090
 ```
+## checking out the demo app
+- apply the application as described in the [Docker readme](./README.docker.md/#procedure)
+- connect to the Prometheus port-forwarded endpoint (see above)
+- you should new targets created by the PodMonitor and the ServiceMonitor
+- check the Prometheus configuration file --the PodMonitor adn the ServiceMonitor have been automatically converted to Prometheus configuration
+- *usually we apply rate metrics to count functions*
+- "pod monitor" and service monitor" are almost identical in how they operate; they just select different objects
+- *you can create a separate service to expose prometheus metrics*
+- when you create a service, kubernetes will also create an endpoint object: `k get endpoints -n staging`
+
+## Grafana
+- `helm list -n monitoring`
+- `kubectl get pods -n monitoring`

@@ -1,3 +1,4 @@
+<a name="procedure"></a>
 ## procedure
 1. clone example app
   +  `git clone https://github.com/olliefr/docker-gs-ping`
@@ -8,12 +9,12 @@
   + `go mod tidy`
   + `go run main.go`
   + connect to local host: http://127.0.0.1:8080/api/devices
-6. build the image: `docker build --tag prometheus-demo-app  .`
-7. package the image for AWS: `docker tag prometheus-demo-app:latest 240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest`
-docker tag docker-gs-ping:multistage 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage
+6. build the image: `docker build --tag myapp:v0.1  .`
+7. package the image for AWS: `docker tag myapp:v0.1 240195868935.dkr.ecr.us-east-2.amazonaws.com/myapp:v0.1`
+  + example:  `docker tag docker-gs-ping:multistage 240195868935.dkr.ecr.us-east-2.amazonaws.com/docker-gs-ping:multistage`
 8. upload to ECR
   + `aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 240195868935.dkr.ecr.us-east-2.amazonaws.com`
-  + `docker push 240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest`
+  + `docker push 240195868935.dkr.ecr.us-east-2.amazonaws.com/myapp:v0.1`
 9. get the image URI from the AWS Console (go to ECR):  240195868935.dkr.ecr.us-east-2.amazonaws.com/prometheus-demo-app:latest
 10. update the deployment YML with the image uri
 11. deploy:  `k apply -f deploy`
@@ -21,7 +22,7 @@ docker tag docker-gs-ping:multistage 240195868935.dkr.ecr.us-east-2.amazonaws.co
 - log message: 
 - `docker image inspect prometheus-demo-app:v0.1`
 ## Docker
-- Dock`er images can be inherited from other images. 
+- Docker images can be inherited from other images. 
 - Therefore, instead of creating our own base image from scratch, we can use the official Go image that already has all necessary tools and libraries to compile and run a Go application.
 - To make things easier when running the rest of our commands, let’s create a directory inside the image that we are building. - - - This also instructs Docker to use this directory as the default destination for all subsequent commands
 - Usually the very first thing you do once you’ve downloaded a project written in Go is to install the modules necessary to compile it. 
